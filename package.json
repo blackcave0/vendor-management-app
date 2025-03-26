@@ -1,0 +1,38 @@
+{
+  "name": "vendor-management-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "build": {
+    "appId": "com.vendor.management.app",
+    "productName": "Vendor Management App",
+    "asar": false,
+    "asarUnpack" : "**/*",
+    "forceCodeSigning": false,
+    "directories": {
+      "output": "dist_new"
+    },
+    "win": {
+      "target": "portable",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^35.0.3",
+    "electron-builder": "^24.6.0",
+    "electron-reload": "^1.5.0"
+  }
+}

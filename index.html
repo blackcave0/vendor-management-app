@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendor Management App</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div id="loginContainer">
+    <h1>Admin Login </h1>
+    <input type="password" id="adminPassword" placeholder="Enter Admin Password">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div id="appContainer" style="display: none;">
+    <h1>Vendor Management</h1>
+
+    <div>
+      <input type="text" id="vendorName" placeholder="Vendor Name">
+      <input type="text" id="vendorContact" placeholder="Contact Info">
+      <button onclick="addVendor()">Add Vendor</button>
+    </div>
+
+    <button onclick="syncData()">Sync Data</button>
+
+    <h2>Vendor List</h2>
+    <ul id="vendorList"></ul>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+
+</html>
