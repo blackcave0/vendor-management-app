@@ -1,27 +1,393 @@
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vendor Management App - Products</title>
-  <link rel="stylesheet" href="../styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+      <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <title>Products Management</title>
+  <style>
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .modal-content {
+      background-color: white;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 80%;
+      max-width: 600px;
+    }
+    
+    .close-button {
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    #productForm input, #productForm textarea {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    #productForm button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .btn-edit {
+      background-color: #4299e1;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-right: 4px;
+      cursor: pointer;
+    }
+    
+    .btn-delete {
+      background-color: #f56565;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
-<body>
-  <div class="content-section">
-    <div class="section-header">
-      <h1><i class="fas fa-box"></i> Products</h1>
-    </div>
-    <div class="card">
-      <div class="card-body">
-        <p>Manage your products here.</p>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+    <h1 class="text-3xl font-semibold text-gray-800 mb-4">Products Management</h1>
+    <p class="text-gray-600 mb-6">Manage your product inventory, track stock levels, and organize product categories.</p>
+
+    <div class="flex justify-between items-center mb-4">
+      <div class="flex-1 mr-4">
+        <input type="text" id="searchInput" placeholder="Search products..." class="border p-2 rounded w-full">
       </div>
+      <button id="addProductBtn" class="bg-blue-500 text-white p-2 rounded">+ Add Product</button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full bg-white border rounded-lg overflow-hidden shadow-md">
+        <thead class="bg-blue-500 text-white">
+          <tr>
+            <th class="p-3 text-left">Product Name</th>
+            <th class="p-3 text-left">Price</th>
+            <th class="p-3 text-left">Stocks</th>
+            <th class="p-3 text-left">Category</th>
+            <th class="p-3 text-left">Supplier</th>
+            <th class="p-3 text-left">Description</th>
+            <th class="p-3 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="productTable">
+          <!-- Dynamic rows will be rendered here -->
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="mt-4 flex justify-between text-gray-600">
+      <span id="totalProducts">No. of Products: 0</span>
+      <span>Total Value: $<span id="totalPrice">0.00</span></span>
+    </div>
+    <div class="text-sm text-gray-500 mt-2" id="paginationInfo">
+      Showing 0 to 0 of 0 results
     </div>
   </div>
-</body>
+  
+  <div id="productModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">×</span>
+      <h2 id="modalTitle" class="text-2xl font-semibold mb-4">Add New Product</h2>
+      <form id="productForm">
+        <input type="hidden" id="productId">
+        <input type="text" id="productName" placeholder="Product Name" required>
+        <input type="number" id="productPrice" placeholder="Price" step="0.01" required>
+        <input type="number" id="productStocks" placeholder="Stocks" required>
+        <input type="text" id="productCategory" placeholder="Category" required>
+        <input type="text" id="productSupplier" placeholder="Supplier" required>
+        <textarea id="productDescription" placeholder="Description" rows="3"></textarea>
+        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Save Product</button>
+      </form>
+    </div>
+  </div>
 
+  <script>
+    // Initialize product management
+    document.addEventListener('DOMContentLoaded', () => {
+      // Load products from localStorage
+      const products = JSON.parse(localStorage.getItem('electron_products') || '[]');
+      renderProductTable(products);
+      
+      // Request products from database
+      if (window.ipcRenderer) {
+        window.ipcRenderer.send('fetch-products');
+      }
+      
+      // Set up event listeners
+      setupEventListeners();
+    });
+    
+    function setupEventListeners() {
+      const addProductBtn = document.getElementById('addProductBtn');
+      const closeButton = document.querySelector('.close-button');
+      const productForm = document.getElementById('productForm');
+      const modal = document.getElementById('productModal');
+      const searchInput = document.getElementById('searchInput');
+      
+      // Add product button
+      if (addProductBtn) {
+        addProductBtn.addEventListener('click', () => {
+          document.getElementById('productForm').reset();
+          document.getElementById('productId').value = '';
+          document.getElementById('modalTitle').textContent = 'Add New Product';
+          modal.style.display = 'block';
+        });
+      }
+      
+      // Close modal button
+      if (closeButton) {
+        closeButton.addEventListener('click', () => {
+          modal.style.display = 'none';
+        });
+      }
+      
+      // Close modal when clicking outside
+      window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+      
+      // Product form submission
+      if (productForm) {
+        productForm.addEventListener('submit', (event) => {
+          event.preventDefault();
+          
+          const productData = {
+            id: document.getElementById('productId').value || null,
+            name: document.getElementById('productName').value,
+            price: parseFloat(document.getElementById('productPrice').value) || 0,
+            stocks: parseInt(document.getElementById('productStocks').value) || 0,
+            category: document.getElementById('productCategory').value,
+            supplier: document.getElementById('productSupplier').value,
+            description: document.getElementById('productDescription').value
+          };
+          
+          // Save to database
+          if (window.ipcRenderer) {
+            window.ipcRenderer.send('save-product', productData);
+          }
+          
+          // Save to localStorage
+          saveProductToLocalStorage(productData);
+          
+          // Close modal
+          modal.style.display = 'none';
+        });
+      }
+      
+      // Search functionality
+      if (searchInput) {
+        searchInput.addEventListener('input', () => {
+          const searchTerm = searchInput.value.toLowerCase();
+          const products = JSON.parse(localStorage.getItem('electron_products') || '[]');
+          
+          const filtered = products.filter(product => 
+            product.name.toLowerCase().includes(searchTerm) ||
+            product.category.toLowerCase().includes(searchTerm) ||
+            product.supplier.toLowerCase().includes(searchTerm) ||
+            (product.description && product.description.toLowerCase().includes(searchTerm))
+          );
+          
+          renderProductTable(filtered);
+        });
+      }
+    }
+    
+    function saveProductToLocalStorage(productData) {
+      const products = JSON.parse(localStorage.getItem('electron_products') || '[]');
+      
+      if (productData.id) {
+        // Update existing product
+        const index = products.findIndex(p => p.id.toString() === productData.id.toString());
+        if (index !== -1) {
+          products[index] = productData;
+        } else {
+          products.push(productData);
+        }
+      } else {
+        // Add new product
+        productData.id = `temp_${Date.now()}`;
+        products.push(productData);
+      }
+      
+      localStorage.setItem('electron_products', JSON.stringify(products));
+      renderProductTable(products);
+    }
+    
+    function renderProductTable(products) {
+      const productTable = document.getElementById('productTable');
+      const totalPriceEl = document.getElementById('totalPrice');
+      const totalProductsEl = document.getElementById('totalProducts');
+      const paginationInfoEl = document.getElementById('paginationInfo');
+      
+      if (!productTable) return;
+      
+      // Clear table
+      productTable.innerHTML = '';
+      
+      // Calculate totals
+      let totalValue = 0;
+      
+      if (products.length === 0) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 7;
+        cell.textContent = 'No products found';
+        cell.className = 'p-3 text-center text-gray-500';
+        row.appendChild(cell);
+        productTable.appendChild(row);
+      } else {
+        products.forEach(product => {
+          const row = document.createElement('tr');
+          row.className = 'border-b hover:bg-gray-50';
+          
+          // Add cells
+          row.innerHTML = `
+            <td class="p-3">${product.name}</td>
+            <td class="p-3">${parseFloat(product.price).toFixed(2)}</td>
+            <td class="p-3">${product.stocks}</td>
+            <td class="p-3">${product.category}</td>
+            <td class="p-3">${product.supplier}</td>
+            <td class="p-3">${product.description || ''}</td>
+            <td class="p-3">
+              <button class="btn-edit" data-id="${product.id}">Edit</button>
+              <button class="btn-delete" data-id="${product.id}">Delete</button>
+            </td>
+          `;
+          
+          productTable.appendChild(row);
+          
+          // Add to total value
+          totalValue += parseFloat(product.price) * parseInt(product.stocks);
+        });
+        
+        // Add event listeners to buttons
+        productTable.querySelectorAll('.btn-edit').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const productId = this.dataset.id;
+            const product = products.find(p => p.id.toString() === productId);
+            if (product) {
+              editProduct(product);
+            }
+          });
+        });
+        
+        productTable.querySelectorAll('.btn-delete').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const productId = this.dataset.id;
+            if (confirm('Are you sure you want to delete this product?')) {
+              deleteProduct(productId);
+            }
+          });
+        });
+      }
+      
+      // Update summary
+      if (totalPriceEl) totalPriceEl.textContent = totalValue.toFixed(2);
+      if (totalProductsEl) totalProductsEl.textContent = `No. of Products: ${products.length}`;
+      if (paginationInfoEl) paginationInfoEl.textContent = `Showing 1 to ${products.length} of ${products.length} results`;
+    }
+    
+    function editProduct(product) {
+      const modal = document.getElementById('productModal');
+      const productIdInput = document.getElementById('productId');
+      const productNameInput = document.getElementById('productName');
+      const productPriceInput = document.getElementById('productPrice');
+      const productStocksInput = document.getElementById('productStocks');
+      const productCategoryInput = document.getElementById('productCategory');
+      const productSupplierInput = document.getElementById('productSupplier');
+      const productDescriptionInput = document.getElementById('productDescription');
+      const modalTitle = document.getElementById('modalTitle');
+      
+      // Set form values
+      modalTitle.textContent = 'Edit Product';
+      productIdInput.value = product.id;
+      productNameInput.value = product.name;
+      productPriceInput.value = product.price;
+      productStocksInput.value = product.stocks;
+      productCategoryInput.value = product.category;
+      productSupplierInput.value = product.supplier;
+      productDescriptionInput.value = product.description || '';
+      
+      // Show modal
+      modal.style.display = 'block';
+    }
+    
+    function deleteProduct(productId) {
+      // Delete from database
+      if (window.ipcRenderer) {
+        window.ipcRenderer.send('delete-product', productId);
+      }
+      
+      // Delete from localStorage
+      const products = JSON.parse(localStorage.getItem('electron_products') || '[]');
+      const updatedProducts = products.filter(p => p.id.toString() !== productId.toString());
+      localStorage.setItem('electron_products', JSON.stringify(updatedProducts));
+      
+      // Update UI
+      renderProductTable(updatedProducts);
+    }
+    
+    // Set up IPC listeners if available
+    if (window.ipcRenderer) {
+      window.ipcRenderer.on('fetch-products-response', (event, products) => {
+        localStorage.setItem('electron_products', JSON.stringify(products));
+        renderProductTable(products);
+      });
+      
+      window.ipcRenderer.on('save-product-response', (event, success) => {
+        if (success) {
+          window.ipcRenderer.send('fetch-products');
+        } else {
+          alert('Failed to save product');
+        }
+      });
+      
+      window.ipcRenderer.on('delete-product-response', (event, success) => {
+        if (success) {
+          window.ipcRenderer.send('fetch-products');
+        } else {
+          alert('Failed to delete product');
+        }
+      });
+    }
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof initProductsPage === 'function') {
+        initProductsPage();
+      } else {
+        console.error('initProductsPage function is not defined.');
+      }
+    });
+  </script>
+</body>
 </html>

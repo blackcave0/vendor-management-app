@@ -15,145 +15,140 @@
     <div class="section-header">
       <h1><i class="fas fa-home"></i> Dashboard</h1>
     </div>
-    <div class="card">
-      <div class="card-body">
-        <p>Welcome to the Dashboard!</p>
-        <p>Use the navigation menu to access different sections of the app.</p>
+    <p>Welcome to the Dashboard!</p>
+  </div>
+
+  <!-- Vendor Management Section -->
+  <div class="main-content" id="mainContent">
+    <!-- Dynamic content will be loaded here -->
+    <!-- Top Navigation -->
+    <div class="top-nav">
+      <div class="support-info">
+        <i class="fas fa-headset"></i> Customer Support: (+91) 93339 911 911
+        <button class="btn btn-sm btn-outline"><i class="fas fa-comments"></i> Get Instant Support</button>
+      </div>
+      <div class="user-menu">
+        <button class="btn btn-sm btn-outline" onclick="syncData()"><i class="fas fa-sync"></i> Sync Data</button>
+        <div class="user-profile">
+          <img src="https://via.placeholder.com/40" alt="User">
+          <span>Admin</span>
+        </div>
       </div>
     </div>
-
+  
     <!-- Vendor Management Section -->
-    <div class="main-content" id="mainContent">
-      <!-- Dynamic content will be loaded here -->
-      <!-- Top Navigation -->
-      <div class="top-nav">
-        <div class="support-info">
-          <i class="fas fa-headset"></i> Customer Support: (+91) 93339 911 911
-          <button class="btn btn-sm btn-outline"><i class="fas fa-comments"></i> Get Instant Support</button>
+    <div class="content-section">
+      <div class="section-header">
+        <h1><i class="fas fa-handshake"></i> Vendor Management</h1>
+      </div>
+  
+      <!-- Add Vendor Form -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Add New Vendor</h3>
         </div>
-        <div class="user-menu">
-          <button class="btn btn-sm btn-outline" onclick="syncData()"><i class="fas fa-sync"></i> Sync Data</button>
-          <div class="user-profile">
-            <img src="https://via.placeholder.com/40" alt="User">
-            <span>Admin</span>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="vendorName">Vendor Name</label>
+              <input type="text" id="vendorName" placeholder="Enter vendor name">
+            </div>
+            <div class="form-group">
+              <label for="vendorContact">Contact Info</label>
+              <input type="text" id="vendorContact" placeholder="Phone or email">
+            </div>
+            <button class="btn btn-primary" onclick="addVendor()">
+              <i class="fas fa-plus"></i> Add Vendor
+            </button>
           </div>
         </div>
       </div>
-    
-      <!-- Vendor Management Section -->
-      <div class="content-section">
-        <div class="section-header">
-          <h1><i class="fas fa-handshake"></i> Vendor Management</h1>
+  
+      <!-- Vendor List -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Vendor List</h3>
         </div>
-    
-        <!-- Add Vendor Form -->
-        <div class="card">
-          <div class="card-header">
-            <h3>Add New Vendor</h3>
-          </div>
-          <div class="card-body">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="vendorName">Vendor Name</label>
-                <input type="text" id="vendorName" placeholder="Enter vendor name">
-              </div>
-              <div class="form-group">
-                <label for="vendorContact">Contact Info</label>
-                <input type="text" id="vendorContact" placeholder="Phone or email">
-              </div>
-              <button class="btn btn-primary" onclick="addVendor()">
-                <i class="fas fa-plus"></i> Add Vendor
-              </button>
-            </div>
-          </div>
-        </div>
-    
-        <!-- Vendor List -->
-        <div class="card">
-          <div class="card-header">
-            <h3>Vendor List</h3>
-          </div>
-          <div class="card-body">
-            <div class="vendor-list-container">
-              <ul id="vendorList" class="vendor-list"></ul>
-            </div>
+        <div class="card-body">
+          <div class="vendor-list-container">
+            <ul id="vendorList" class="vendor-list"></ul>
           </div>
         </div>
       </div>
-    
-      <!-- Invoice Section -->
-      <div class="content-section">
-        <div class="section-header">
-          <h2><i class="fas fa-file-invoice"></i> Create Invoice</h2>
-          <p>Enter details to make your first Sale 🚀</p>
-        </div>
-    
-        <div class="card">
-          <div class="card-body">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="invoice-number">Invoice Number:</label>
-                <input type="text" id="invoice-number" name="invoice-number" readonly>
-              </div>
-              <div class="form-group">
-                <label for="invoice-date">Invoice Date:</label>
-                <input type="date" id="invoice-date" name="invoice-date" required>
-              </div>
-              <div class="form-group">
-                <label for="customer-name">Customer Name:</label>
-                <input type="text" id="customer-name" name="customer-name" required>
-              </div>
+    </div>
+  
+    <!-- Invoice Section -->
+    <div class="content-section">
+      <div class="section-header">
+        <h2><i class="fas fa-file-invoice"></i> Create Invoice</h2>
+        <p>Enter details to make your first Sale 🚀</p>
+      </div>
+  
+      <div class="card">
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="invoice-number">Invoice Number:</label>
+              <input type="text" id="invoice-number" name="invoice-number" readonly>
             </div>
-    
-            <div class="item-selection">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Description</th>
-                    <th>Quantity</th>
-                    <th>Price/Unit</th>
-                    <th>Amount</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr class="item-row">
-                    <td><input type="text" name="item-description"></td>
-                    <td><input type="number" name="item-quantity"></td>
-                    <td><input type="number" name="item-price"></td>
-                    <td><span class="item-amount">0</span></td>
-                    <td><button class="btn btn-sm btn-danger remove-item"><i class="fas fa-trash"></i></button></td>
-                  </tr>
-                </tbody>
-              </table>
-              <button class="btn btn-sm btn-outline add-row"><i class="fas fa-plus"></i> Add Item</button>
+            <div class="form-group">
+              <label for="invoice-date">Invoice Date:</label>
+              <input type="date" id="invoice-date" name="invoice-date" required>
             </div>
-    
-            <div class="calculation">
-              <div class="form-group">
-                <label for="total-amount">Total Amount:</label>
-                <span id="total-amount" class="amount">₹0.00</span>
-              </div>
-              <div class="form-group">
-                <label for="received">Received:</label>
-                <input type="number" id="received" name="received">
-              </div>
-              <div class="form-group">
-                <label for="balance">Balance:</label>
-                <span id="balance" class="amount">₹0.00</span>
-              </div>
-            </div>
-    
-            <div class="form-actions">
-              <button class="btn btn-primary create-invoice"><i class="fas fa-file-invoice"></i> Create Invoice</button>
+            <div class="form-group">
+              <label for="customer-name">Customer Name:</label>
+              <input type="text" id="customer-name" name="customer-name" required>
             </div>
           </div>
+  
+          <div class="item-selection">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Quantity</th>
+                  <th>Price/Unit</th>
+                  <th>Amount</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="item-row">
+                  <td><input type="text" name="item-description"></td>
+                  <td><input type="number" name="item-quantity"></td>
+                  <td><input type="number" name="item-price"></td>
+                  <td><span class="item-amount">0</span></td>
+                  <td><button class="btn btn-sm btn-danger remove-item"><i class="fas fa-trash"></i></button></td>
+                </tr>
+              </tbody>
+            </table>
+            <button class="btn btn-sm btn-outline add-row"><i class="fas fa-plus"></i> Add Item</button>
+          </div>
+  
+          <div class="calculation">
+            <div class="form-group">
+              <label for="total-amount">Total Amount:</label>
+              <span id="total-amount" class="amount">₹0.00</span>
+            </div>
+            <div class="form-group">
+              <label for="received">Received:</label>
+              <input type="number" id="received" name="received">
+            </div>
+            <div class="form-group">
+              <label for="balance">Balance:</label>
+              <span id="balance" class="amount">₹0.00</span>
+            </div>
+          </div>
+  
+          <div class="form-actions">
+            <button class="btn btn-primary create-invoice"><i class="fas fa-file-invoice"></i> Create Invoice</button>
+          </div>
         </div>
-    
-        <div class="statistic-card">
-          <i class="fas fa-bolt"></i>
-          <div class="statistic-text">1Cr+ Vyaparis have created invoices on Vyapar ⚡</div>
-        </div>
+      </div>
+  
+      <div class="statistic-card">
+        <i class="fas fa-bolt"></i>
+        <div class="statistic-text">1Cr+ Vyaparis have created invoices on Vyapar ⚡</div>
       </div>
     </div>
   </div>

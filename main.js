@@ -27,32 +27,145 @@ db.run(`
   )
 `);
 
+db.run(`
+  CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    price REAL,
+    stocks INTEGER,
+    category TEXT,
+    supplier TEXT,
+    description TEXT
+  )
+`);
+
 ipcMain.on("save-invoice", (event, invoiceData) => {
-  const { invoice_number, customer_name, invoice_date, total_amount, received, balance, items } = invoiceData;
+  const {
+    invoice_number,
+    customer_name,
+    invoice_date,
+    total_amount,
+    received,
+    balance,
+    items,
+  } = invoiceData;
   const stmt = db.prepare(`
     INSERT INTO invoices (invoice_number, customer_name, invoice_date, total_amount, received_amount, balance)
     VALUES (?, ?, ?, ?, ?, ?)
   `);
-  stmt.run(invoice_number, customer_name, invoice_date, total_amount, received, balance, function (err) {
-    if (err) {
-      event.sender.send("save-invoice-response", { success: false, error: err.message });
-      return;
-    }
-    const invoiceId = this.lastID;
-    items.forEach(item => {
-      db.run(`
+  stmt.run(
+    invoice_number,
+    customer_name,
+    invoice_date,
+    total_amount,
+    received,
+    balance,
+    function (err) {
+      if (err) {
+        event.sender.send("save-invoice-response", {
+          success: false,
+          error: err.message,
+        });
+        return;
+      }
+      const invoiceId = this.lastID;
+      items.forEach((item) => {
+        db.run(
+          `
         INSERT INTO invoice_items (invoice_id, item_name, quantity, price_per_unit, amount)
         VALUES (?, ?, ?, ?, ?)
-      `, [invoiceId, item.description, item.quantity, item.price_per_unit, item.amount]);
-    });
-    event.sender.send("save-invoice-response", { success: true });
-  });
+      `,
+          [
+            invoiceId,
+            item.description,
+            item.quantity,
+            item.price_per_unit,
+            item.amount,
+          ]
+        );
+      });
+      event.sender.send("save-invoice-response", { success: true });
+    }
+  );
 });
 
 ipcMain.on("get-next-invoice-number", (event) => {
   db.get("SELECT MAX(id) as max_id FROM invoices", (err, row) => {
-    const nextNumber = row && row.max_id ? (row.max_id + 1).toString().padStart(2, "0") : "01";
+    const nextNumber =
+      row && row.max_id ? (row.max_id + 1).toString().padStart(2, "0") : "01";
     event.sender.send("next-invoice-number", nextNumber);
+  });
+});
+
+// Fetch products
+ipcMain.on("fetch-products", (event) => {
+  db.all("SELECT * FROM products", (err, rows) => {
+    if (err) {
+      console.error(err.message);
+      event.sender.send("fetch-products-response", []);
+    } else {
+      event.sender.send("fetch-products-response", rows);
+    }
+  });
+});
+
+// Save or update a product
+ipcMain.on("save-product", (event, product) => {
+  if (product.id && !isNaN(parseInt(product.id))) {
+    db.run(
+      `UPDATE products SET name = ?, price = ?, stocks = ?, category = ?, supplier = ?, description = ? WHERE id = ?`,
+      [
+        product.name,
+        product.price,
+        product.stocks,
+        product.category,
+        product.supplier,
+        product.description,
+        product.id,
+      ],
+      (err) => {
+        event.sender.send("save-product-response", !err); // Send success or failure response
+      }
+    );
+  } else {
+    db.run(
+      `INSERT INTO products (name, price, stocks, category, supplier, description) VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        product.name,
+        product.price,
+        product.stocks,
+        product.category,
+        product.supplier,
+        product.description,
+      ],
+      function (err) {
+        if (!err) {
+          // Send back the new product with its database ID
+          db.get(
+            "SELECT * FROM products WHERE id = ?",
+            [this.lastID],
+            (err, row) => {
+              event.sender.send("save-product-response", {
+                success: true,
+                product: row,
+              });
+            }
+          );
+        } else {
+          event.sender.send("save-product-response", {
+            success: false,
+            error: err.message,
+          });
+        }
+      }
+    );
+  }
+});
+
+// Delete a product
+ipcMain.on("delete-product", (event, productId) => {
+  db.run(`DELETE FROM products WHERE id = ?`, [productId], (err) => {
+    event.sender.send("delete-product-response", !err);
   });
 });
 
@@ -67,50 +180,7 @@ function createWindow() {
     },
   });
 
-  win.loadFile("index.html");
-
-  // Create custom menu
-  const menu = Menu.buildFromTemplate([
-    {
-      label: "File",
-      submenu: [
-        { role: "quit" },
-      ],
-    },
-    {
-      label: "Edit",
-      submenu: [
-        { role: "undo" },
-        { role: "redo" },
-        { type: "separator" },
-        { role: "cut" },
-        { role: "copy" },
-        { role: "paste" },
-        { role: "selectAll" },
-      ],
-    },
-    {
-      label: "Window",
-      submenu: [
-        { role: "minimize" },
-        { role: "close" },
-      ],
-    },
-    {
-      label: "Help",
-      submenu: [
-        {
-          label: "Learn More",
-          click: async () => {
-            const { shell } = require("electron");
-            await shell.openExternal("https://electronjs.org");
-          },
-        },
-      ],
-    },
-  ]);
-
-  Menu.setApplicationMenu(menu);
+  win.loadFile("index.html"); // Ensure this points to the correct file
 }
 
 app.whenReady().then(() => {
