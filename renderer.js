@@ -84,6 +84,43 @@ document.addEventListener("DOMContentLoaded", () => {
   ipcRenderer.on("next-invoice-number", (event, number) => {
     document.getElementById("invoice-number").value = number;
   });
+
+  const sidebarLinks = document.querySelectorAll(".sidebar-menu a");
+  const mainContent = document.getElementById("mainContent");
+
+  // Function to load HTML content dynamically
+  function loadContent(section) {
+    fetch(`views/${section}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to load ${section}`);
+        }
+        return response.text();
+      })
+      .then((html) => {
+        mainContent.innerHTML = html;
+      })
+      .catch((error) => {
+        console.error(error);
+        mainContent.innerHTML = "<p>Error loading content. Please try again later.</p>";
+      });
+  }
+
+  // Add click event listeners to sidebar links
+  sidebarLinks.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      const section = link.getAttribute("data-section");
+      loadContent(section);
+
+      // Highlight the active link
+      sidebarLinks.forEach((link) => link.parentElement.classList.remove("active"));
+      link.parentElement.classList.add("active");
+    });
+  });
+
+  // Load the default section (Dashboard) on page load
+  loadContent("dashboard.html");
 });
 
 document.querySelector(".add-row").addEventListener("click", () => {
